@@ -5,12 +5,19 @@ from .uploadcallbacks import progressbar_callback
 from .sessionbuilder import SessionBuilder, default_app_data_dir
 
 def root_url(environment):
-  url = {'local': 'http://bonnie-local.udacity.com:3000',
+  url = {'local': 'http://local-dev.udacity.com:3000',
          'development': 'https://bonnie-dev.udacity.com',
          'staging': 'https://bonnie-staging.udacity.com',
          'production': 'https://bonnie.udacity.com'}
 
   return url[environment]
+
+def build_session(environment = 'production', id_provider = 'gt', jwt_path = None):
+    jwt_path = jwt_path or os.path.join(default_app_data_dir(), 'gtomscs_jwt')
+
+    return SessionBuilder(root_url(environment),
+                          id_provider,
+                          jwt_path).new()
 
 def submit(gtcode, 
            quiz_name, 
@@ -21,11 +28,7 @@ def submit(gtcode,
            jwt_path = None,
            refresh_time = 3):
 
-    jwt_path = jwt_path or os.path.join(default_app_data_dir(), 'gtomscs_jwt')
-
-    session = SessionBuilder(root_url(environment),
-                             id_provider,
-                             jwt_path).new()
+    session = build_session(environment, id_provider, jwt_path)
     
     submission = Submission(gtcode,
                             quiz_name,
