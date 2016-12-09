@@ -6,6 +6,11 @@ setup(
     author='S. Charles Brubaker',
     author_email='cb@udacity.com',
     packages=['nelson'],
+    entry_points={
+        'console_scripts': [
+            'nelson = nelson.developer:main_func'
+        ],
+    },
     url='http://testpypi.python.org/pypi/nelson/',
     license='MIT',
     description='Handling submission of code to Udacity for automatic feedback',
