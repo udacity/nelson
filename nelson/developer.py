@@ -10,6 +10,9 @@ from pkg_resources import Requirement, resource_filename
 from .gtomscs import build_session as build_gtomscs_session
 from .udacity import build_session as build_udacity_session
 
+from .gtomscs import root_url as gtomscs_root_url
+from .udacity import root_url as udacity_root_url
+
 def safe_mkdirs(path):
   try:
     os.makedirs(path)
@@ -26,7 +29,7 @@ def create_deploy_key():
     sp.check_call(["ssh-keygen", "-f", "deploy_key/deploy_id_rsa", "-t", "rsa", "-q", "-N", ""])
     return
 
-  logging.warning("Deploy key already exists")
+  print "Deploy key already exists"
 
 def read_deploy_key():
   with open('deploy_key/deploy_id_rsa', 'rb') as fd:
@@ -44,108 +47,164 @@ def infer_git_url(remote):
       if words[1].startswith('git@github.com:'):
         ans = words[1]
       elif words[1].startswith('https://github.com'):
-        ans = 'git@github.com:' + words[1][19:] + '.git'
+        ans = 'git@github.com:' + words[1][19:]
 
   if ans == None:
-    raise RuntimeError("Unable to infer git_url")
+    raise RuntimeError("Unable to infer git_url.  Please set the parameter in the config file.")
 
   if ans == 'git@github.com:udacity/clyde-starter':
     raise RuntimeError("You must create a new remote repository.")
 
   return ans
 
-def create_quiz(http, gtcode, quiz_data):
-  data = {'quiz': quiz_data}
-
-  r = http.post("%s/courses/%s/quizzes" % (http.root_url, gtcode), data = json.dumps(data))
-  r.raise_for_status()
-
-def create_project(http, ndkey, project_data):
-  data = {'project': project_data}
-
-  r = http.post("%s/nanodegrees/%s/projects" % (http.root_url, ndkey), data = json.dumps(data))
-  r.raise_for_status()
-
-def create_course(http, course_data):
-  r = http.post(http.root_url + '/courses/', data = json.dumps(course_data))
-  r.raise_for_status()
-
-def create_nanodegree(http, nanodegree_data):
-  r = http.post(http.root_url + '/nanodegrees/', data = json.dumps(course_data))
-  r.raise_for_status()
-
 def create_files(name):
   src = os.path.dirname(resource_filename(Requirement.parse("nelson"),"/nelson/clyde_sample/run.py"))
 
   dst = os.path.join('app', name)
   if not os.path.isfile(dst):
-    shutil.copyfile(src, dst)
+    shutil.copytree(src, dst)
 
-  linkname = os.path.join('development', name, 'workspace', 'main.c')
-  if not os.path.isfile(linkname) and not os.path.islink(linkname):
-    os.symlink(os.path.relpath(dst,os.path.join('development', name, 'workspace')), linkname)
+class CDHelper(object):
+  def __init__(self, args):
+    self.object = args.object
+    self.data_file = args.data_file
+    self.environment = args.environment
+    self.id_provider = args.id_provider
+    self.jwt_path = args.jwt_path
 
-def params_missing_for_gtomscs_course(data):
-  return {'gtcode', 'title'} - frozenset(_ for _ in data)
+  def generate(self):
+    with open(self.data_file, "r") as fd:
+      data = json.load(fd)
 
-def params_missing_for_udacity_nanodegree(data):
-  return {'ndkey', 'name'} - frozenset(_ for _ in data)
+    missing_params = self.find_missing_params(data)
+    if len(missing_params) > 0:
+      raise ValueError("The data file %s is missing required parameters: %s" \
+                        % (self.data_file, str(missing_params)))
 
-def params_missing_for_gtomscs_quiz(data):
-  return {'gtcode', 'name', 'executor', 'docker_image'} - frozenset(_ for _ in data)
+    return self.create_on_webserver(data)
+    
+class CourseHelper(CDHelper):
 
-def params_missing_for_udacity_project(data):
-  return {'ndkey', 'name', 'executor', 'docker_image'} - frozenset(_ for _ in data)
+  def __init__(self, args):
+    super(CourseHelper, self).__init__(args)
+    self.root_url = gtomscs_root_url(self.environment)
 
-def generate_course(args):
-  with open(args.data_file, "r") as fd:
-    data = json.load(fd)
+  def find_missing_params(self, data):
+    return {'gtcode', 'title'} - frozenset(_ for _ in data)
 
-  missing_params = params_missing_for_gtomscs_course(data)
-  if len(missing_params) > 0:
-     raise ValueError("The data file %s is missing required parameters: %s" \
-                      % (data_file, str(missing_params)))
+  def create_on_webserver(self, data):
+    if 'git_url' not in data:
+      data['git_url'] = infer_git_url('origin')
 
-  create_deploy_key()
-  data['git_url'] = infer_git_url(data.get('remote') or 'origin')
-  data['deploy_key'] = read_deploy_key()
+    data['deploy_key'] = read_deploy_key()
 
-  session = build_gtomscs_session(environment, id_provider, jwt_path)
-  create_course(session, data)
+    data = {'course': data}
 
-def seed_local_files(name):
-  #Creating the needed directories
-  safe_mkdirs('app')
-  safe_mkdirs(os.path.join('development', name, 'workspace'))
-  safe_mkdirs(os.path.join('coaching', name))
+    http = build_gtomscs_session(self.environment, self.id_provider, self.jwt_path)
+    r = http.post(self.root_url + '/courses/', data = json.dumps(data))
+    r.raise_for_status()
 
-  #Seeding with sample files
-  src = os.path.dirname(resource_filename(Requirement.parse("nelson"),
-                                          "/nelson/clyde_sample/grade.py"))
-  dst = os.path.join('app', name)
-  shutil.copyfile(src, dst)
+    return r.json()
 
-  #Creating appropriate links
-  for dirpath, dirs, files in os.walk(dst):
-    for f in files:
-      linkname = os.path.join('development', name, os.path.join(dirpath,f))
-      if not os.path.isfile(linkname) and not os.path.islink(linkname):
-        os.symlink(os.path.relpath(dst, os.path.dirname(linkname)), linkname)
+  def generate(self):
+    create_deploy_key()
 
-def generate(args, find_missing_params, build_session):
-  with open(args.data_file, "r") as fd:
-    data = json.load(fd)
+    return super(CourseHelper, self).generate()
 
-  missing_params = find_missing_params(data)
-  if len(missing_params) > 0:
-    raise ValueError("The data file %s is missing required parameters: %s" \
-                      % (args.data_file, str(missing_params)))
 
-  session = build_session(args.environment, args.id_provider, args.jwt_path)
-  create_project(session, data)
+class NanodegreeHelper(CDHelper):
 
-  if args.object in ['quiz', 'project']:
-    seed_local_files(data['name']) 
+  def __init__(self, args):
+    super(NanodegreeHelper, self).__init__(args)
+    self.root_url = udacity_root_url(self.environment)
+
+  def find_missing_params(self, data):
+    return {'ndkey', 'name'} - frozenset(_ for _ in data)
+
+  def create_on_webserver(self, data):
+    if 'git_url' not in data:
+      data['git_url'] = infer_git_url('origin')
+
+    data['deploy_key'] = read_deploy_key()
+
+    data = {'nanodegree': data}
+
+    http = build_udacity_session(self.environment, self.id_provider, self.jwt_path)
+    r = http.post(self.root_url + '/nanodegrees/', data = json.dumps(data))
+    r.raise_for_status()
+
+    return r.json()
+
+  def generate(self):
+    create_deploy_key()
+
+    return super(NanodegreeHelper, self).generate()
+
+class QuizHelper(CDHelper):
+
+  def __init__(self, args):
+    super(QuizHelper, self).__init__(args)
+    self.root_url = gtomscs_root_url(self.environment)
+
+  def find_missing_params(self, data):
+    return {'gtcode', 'name', 'executor', 'docker_image'} - frozenset(_ for _ in data)
+
+  def create_on_webserver(self, data):
+    data = {'quiz': data}
+
+    http = build_gtomscs_session(self.environment, self.id_provider, self.jwt_path)
+    r = http.post("%s/courses/%s/quizzes" % (self.root_url, data['quiz']['gtcode']), data = json.dumps(data))
+    r.raise_for_status()
+
+    return r.json()
+
+  def generate(self):
+    ans = super(QuizHelper, self).generate()
+
+    with open(self.data_file, "r") as fd:
+      data = json.load(fd)
+
+    create_files(data['name']) 
+
+    return ans
+
+class ProjectHelper(CDHelper):
+
+  def __init__(self, args):
+    super(ProjectHelper, self).__init__(args)
+    self.root_url = udacity_root_url(self.environment)
+
+  def find_missing_params(self, data):
+    return {'ndkey', 'name', 'executor', 'docker_image'} - frozenset(_ for _ in data)
+
+  def create_on_webserver(self, data):
+    data = {'project': data}
+
+    http = build_udacity_session(self.environment, self.id_provider, self.jwt_path)
+    r = http.post("%s/nanodegrees/%s/projects" % (self.root_url, data['project']['ndkey']), data = json.dumps(data))
+    r.raise_for_status()
+
+    return r.json()
+
+  def generate(self):
+    ans = super(ProjectHelper, self).generate()
+
+    with open(self.data_file, "r") as fd:
+      data = json.load(fd)
+
+    create_files(data['name']) 
+
+    return ans
+
+def main(args):
+  if args.object == 'course':
+    return CourseHelper(args).generate()
+  elif args.object == 'nanodegree':
+    return NanodegreeHelper(args).generate()
+  elif args.object == 'quiz':
+    return QuizHelper(args).generate()
+  elif args.object == 'project':
+    return ProjectHelper(args).generate()
 
 def main_func():
   parser = argparse.ArgumentParser(description='Generator for clyde.')
@@ -153,18 +212,13 @@ def main_func():
   parser.add_argument('data_file')
 
   parser.add_argument('--environment', default='production')
-  parser.add_argument('--id_provider', default=None)
+  parser.add_argument('--id_provider', default='udacity')
   parser.add_argument('--jwt_path', default=None)
 
   args = parser.parse_args()
 
-  if args.action == 'course':
-    generate_course(args, params_missing_for_gtomscs_course, build_gtomscs_session)
-  elif args.action == 'nanodegree':
-    generate_quiz(args, params_missing_for_udacity_nanodegree, build_udacity_session)
-  elif args.action == 'quiz':
-    generate_course(args, params_missing_for_gtomscs_quiz, build_gtomscs_session)
-  elif args.action == 'project':
-    generate_project(args, params_missing_for_udacity_project, build_udacity_session)
+  obj = main(args)
+
+  json.dump(obj, sys.stdout, indent = 4)
 
   return 0
