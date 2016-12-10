@@ -175,7 +175,7 @@ class ProjectHelper(CDHelper):
     self.root_url = udacity_root_url(self.environment)
 
   def find_missing_params(self, data):
-    return {'ndkey', 'name', 'executor', 'docker_image'} - frozenset(_ for _ in data)
+    return {'ndkey', 'name', 'timeout', 'executor', 'docker_image'} - frozenset(_ for _ in data)
 
   def create_on_webserver(self, data):
     data = {'project': data}
