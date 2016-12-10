@@ -208,12 +208,12 @@ def main(args):
 
 def main_func():
   parser = argparse.ArgumentParser(description='Generator for clyde.')
-  parser.add_argument('object', choices = ['course', 'nanodegree', 'quiz', 'project'])
-  parser.add_argument('data_file')
+  parser.add_argument('object', choices = ['course', 'nanodegree', 'quiz', 'project'], help="what to create")
+  parser.add_argument('data_file', help="json file containing configuration")
 
-  parser.add_argument('--environment', default='production')
-  parser.add_argument('--id_provider', default='udacity')
-  parser.add_argument('--jwt_path', default=None)
+  parser.add_argument('--environment', default='production', help="webserver environment")
+  parser.add_argument('--id_provider', default='udacity', help="identity provider (gt for OMSCS TAs)")
+  parser.add_argument('--jwt_path', default=None, help="path to file containing auth information")
 
   args = parser.parse_args()
 

@@ -25,6 +25,16 @@ class TestDeveloper(unittest.TestCase):
     os.chdir(self.cwd)
     shutil.rmtree(self.tmp_path) 
 
+  def checkDeployKeyCreated(self):
+    self.assertTrue(os.path.isfile('deploy_key/deploy_id_rsa'))
+
+  def checkFilesCreated(self):
+    self.assertTrue(os.path.isfile(os.path.join('app', self.data['name'], 'grade.py')))
+    self.assertTrue(os.path.isfile(os.path.join('app', self.data['name'], 'run.py')))
+    self.assertTrue(os.path.isfile(os.path.join('app', self.data['name'], 'workspace', 'main.c')))
+    self.assertTrue(os.path.isfile(os.path.join('app', self.data['name'], 'workspace', '.gitignore')))
+
+
 class TestHelperMethods(TestDeveloper):
 
   @mock.patch('nelson.developer.sp')
@@ -53,9 +63,6 @@ class TestHelperMethods(TestDeveloper):
     self.assertEqual(the_exception.message, expected_error_message)
 
 class TestCourseHelper(TestDeveloper):
-
-  def checkDeployKeyCreated(self):
-    self.assertTrue(os.path.isfile('deploy_key/deploy_id_rsa'))
 
   @mock.patch('nelson.developer.build_gtomscs_session')
   def test_course_can_be_created(self, mock_build_session):
@@ -91,9 +98,6 @@ class TestCourseHelper(TestDeveloper):
 
 class TestNanodegreeHelper(TestDeveloper):
 
-  def checkDeployKeyCreated(self):
-    self.assertTrue(os.path.isfile('deploy_key/deploy_id_rsa'))
-
   @mock.patch('nelson.developer.build_udacity_session')
   def test_nanodegree_can_be_created(self, mock_build_session):
     """A nanodegree can be created with the correct parameters"""
@@ -128,11 +132,6 @@ class TestNanodegreeHelper(TestDeveloper):
 
 class TestQuizHelper(TestDeveloper):
 
-  def checkFilesCreated(self):
-    self.assertTrue(os.path.isfile(os.path.join('app', self.data['name'], 'grade.py')))
-    self.assertTrue(os.path.isfile(os.path.join('app', self.data['name'], 'run.py')))
-    self.assertTrue(os.path.isfile(os.path.join('app', self.data['name'], 'workspace', 'main.c')))
-
   @mock.patch('nelson.developer.build_gtomscs_session')
   def test_quiz_can_be_created(self, mock_build_session):
     """A quiz can be created with the correct parameters"""
@@ -165,11 +164,6 @@ class TestQuizHelper(TestDeveloper):
     self.checkFilesCreated()
 
 class TestProjectHelper(TestDeveloper):
-
-  def checkFilesCreated(self):
-    self.assertTrue(os.path.isfile(os.path.join('app', self.data['name'], 'grade.py')))
-    self.assertTrue(os.path.isfile(os.path.join('app', self.data['name'], 'run.py')))
-    self.assertTrue(os.path.isfile(os.path.join('app', self.data['name'], 'workspace', 'main.c')))
 
   @mock.patch('nelson.developer.build_udacity_session')
   def test_project_can_be_created(self, mock_build_session):
