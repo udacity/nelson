@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import stat
 import argparse
@@ -61,10 +62,18 @@ def create_files(name):
   src = os.path.dirname(resource_filename(Requirement.parse("nelson"),"/nelson/clyde_sample/run.py"))
 
   dst = os.path.join('app', name)
-  if not os.path.isfile(dst):
-    shutil.copytree(src, dst)
 
-  shutil.move(os.path.join(dst, 'workspace', '._gitignore'), os.path.join(dst, 'workspace', '.gitignore'))
+  try:
+    if not os.path.isfile(dst):
+      shutil.copytree(src, dst)
+  except OSError as exception:
+    if exception.errno != errno.EEXIST:
+      raise
+    else:
+      print exception.message
+  else:
+    shutil.move(os.path.join(dst, 'workspace', '._gitignore'), os.path.join(dst, 'workspace', '.gitignore'))
+
 
 class CDHelper(object):
   def __init__(self, args):
