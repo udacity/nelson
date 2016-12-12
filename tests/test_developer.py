@@ -32,6 +32,7 @@ class TestDeveloper(unittest.TestCase):
     self.assertTrue(os.path.isfile(os.path.join('app', self.data['name'], 'grade.py')))
     self.assertTrue(os.path.isfile(os.path.join('app', self.data['name'], 'run.py')))
     self.assertTrue(os.path.isfile(os.path.join('app', self.data['name'], 'workspace', 'main.c')))
+    self.assertTrue(os.path.isfile(os.path.join('app', self.data['name'], 'workspace', 'helloworld.c')))
     self.assertTrue(os.path.isfile(os.path.join('app', self.data['name'], 'workspace', '.gitignore')))
 
 
@@ -140,7 +141,8 @@ class TestQuizHelper(TestDeveloper):
       'gtcode': 'csXXXX',
       'name': 'helloworld',
       'executor': 'docker',
-      'docker_image': 'gtomscs/default'
+      'docker_image': 'gtomscs/default',
+      'timeout': 30
     }
 
     with open("quiz.json", "w") as fd:
@@ -173,7 +175,8 @@ class TestProjectHelper(TestDeveloper):
       'ndkey': 'csXXXX',
       'name': 'helloworld',
       'executor': 'docker',
-      'docker_image': 'gtomscs/default'
+      'docker_image': 'gtomscs/default',
+      'timeout': 30
     }
 
     with open("project.json", "w") as fd:

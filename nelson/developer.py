@@ -64,6 +64,8 @@ def create_files(name):
   if not os.path.isfile(dst):
     shutil.copytree(src, dst)
 
+  shutil.move(os.path.join(dst, 'workspace', '._gitignore'), os.path.join(dst, 'workspace', '.gitignore'))
+
 class CDHelper(object):
   def __init__(self, args):
     self.object = args.object
