@@ -86,11 +86,11 @@ class CDHelper(object):
 
   def act(self):
     if self.action == 'get':
-      self.get()
+      return self.get()
     elif self.action == 'create':
-      self.create()
+      return self.create()
     elif self.action == 'update':
-      self.update()
+      return self.update()
     else:
       raise ValueError("Unknown action %s." % self.action)
 
@@ -141,7 +141,7 @@ class CDHelper(object):
 
     r.raise_for_status()
 
-    return r.json()
+    return json.loads(r.text)
 
   def update(self):
     data = self.load_data()
@@ -158,7 +158,7 @@ class CDHelper(object):
 
     r.raise_for_status()
 
-    return r.json()
+    return json.loads(r.text)
 
   def get(self):
     data = self.load_data()
@@ -168,7 +168,6 @@ class CDHelper(object):
     url = self.update_url(data)
 
     http = self.build_session()
-
     r = http.get(url)
 
     r.raise_for_status()
@@ -216,6 +215,11 @@ class CourseHelper(CDHelper):
 
     return super(CourseHelper, self).create()
 
+  def update(self):
+    raise NotImplementedError("Please visit %s to update your course." % self.root_url)
+
+  def get(self):
+    raise NotImplementedError("Please visit %s to see your course configuration." % self.root_url)
 
 class NanodegreeHelper(CDHelper):
 
@@ -297,6 +301,12 @@ class QuizHelper(CDHelper):
 
     return ans
 
+  def update(self):
+    raise NotImplementedError("Please visit %s to update your quiz." % self.root_url)
+
+  def get(self):
+    raise NotImplementedError("Please visit %s to see your quiz configuration." % self.root_url)
+
 class ProjectHelper(CDHelper):
 
   def __init__(self, args):
@@ -356,7 +366,7 @@ def main_func():
 
   get_parser = subparsers.add_parser("get")
   get_parser.add_argument('object', choices = ['course', 'nanodegree', 'quiz', 'project'], help="what type to act upon")
-  create_parser.add_argument('data_file', help="json file containing configuration")
+  get_parser.add_argument('data_file', help="json file containing configuration")
 
   create_parser = subparsers.add_parser("create")
   create_parser.add_argument('object', choices = ['course', 'nanodegree', 'quiz', 'project'], help="what type to act upon") 
