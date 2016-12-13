@@ -77,50 +77,144 @@ def create_files(name):
 
 class CDHelper(object):
   def __init__(self, args):
+    self.action = args.action
     self.object = args.object
     self.data_file = args.data_file
     self.environment = args.environment
     self.id_provider = args.id_provider
     self.jwt_path = args.jwt_path
 
-  def generate(self):
+  def act(self):
+    if self.action == 'get':
+      self.get()
+    elif self.action == 'create':
+      self.create()
+    elif self.action == 'update':
+      self.update()
+    else:
+      raise ValueError("Unknown action %s." % self.action)
+
+  def load_data(self):
     with open(self.data_file, "r") as fd:
       data = json.load(fd)
+    return data
 
-    missing_params = self.find_missing_params(data)
-    if len(missing_params) > 0:
-      raise ValueError("The data file %s is missing required parameters: %s" \
-                        % (self.data_file, str(missing_params)))
+  def check_params(self, data):
 
-    return self.create_on_webserver(data)
-    
+    if self.action == 'create':
+      bad_params = self.find_missing_create_path_params(data)
+    else:
+      bad_params = self.find_missing_get_path_params(data)
+
+    if len(bad_params) > 0:
+      raise ValueError("The data file %s is missing required parameters %s at the top level." \
+                        % (self.data_file, str(tuple(bad_params))))
+
+    if self.action != 'get' and self.object not in data:
+      raise ValueError("The data file %s is missing required parameters %s." \
+                        % (self.data_file, self.object))      
+
+    if self.action == 'create':
+      bad_params = self.find_missing_params(data[self.object])
+      if len(bad_params) > 0:
+        raise ValueError("The data file %s is missing required parameters %s inside of %s" \
+                          % (self.data_file, str(tuple(bad_params)), self.object))
+
+      bad_params = self.find_disallowed_params(data[self.object])
+      if len(bad_params) > 0:
+        raise ValueError("The data file %s contains the following disallowed parameters %s" \
+                         "inside of %s"
+                          % (self.data_file, str(tuple(bad_params)), self.object))   
+
+  def create(self):
+    data = self.load_data()
+
+    self.check_params(data)
+
+    url = self.create_url(data)
+
+    http = self.build_session()
+
+    body = {self.object : data[self.object]}
+
+    r = http.post(url, json = body)
+
+    r.raise_for_status()
+
+    return r.json()
+
+  def update(self):
+    data = self.load_data()
+
+    self.check_params(data)
+
+    url = self.update_url(data)
+
+    http = self.build_session()
+
+    body = {self.object : data[self.object]}
+
+    r = http.patch(url, json = body)
+
+    r.raise_for_status()
+
+    return r.json()
+
+  def get(self):
+    data = self.load_data()
+
+    self.check_params(data)
+
+    url = self.update_url(data)
+
+    http = self.build_session()
+
+    r = http.get(url)
+
+    r.raise_for_status()
+
+    return r.json()
+
 class CourseHelper(CDHelper):
 
   def __init__(self, args):
     super(CourseHelper, self).__init__(args)
     self.root_url = gtomscs_root_url(self.environment)
 
+  def find_missing_get_path_params(self, data):
+    return {'gtcode'} - frozenset(_ for _ in data)
+
+  def find_missing_create_path_params(self, data):
+    return {}
+
   def find_missing_params(self, data):
     return {'gtcode', 'title'} - frozenset(_ for _ in data)
 
-  def create_on_webserver(self, data):
-    if 'git_url' not in data:
-      data['git_url'] = infer_git_url('origin')
+  def find_disallowed_params(self, data):
+    return frozenset(_ for _ in data) - {'gtcode', 'title', 'cd_group_id', 'git_url', 'deploy_key'}
 
-    data['deploy_key'] = read_deploy_key()
+  def build_session(self):
+    return build_gtomscs_session(self.environment, self.id_provider, self.jwt_path)
 
-    data = {'course': data}
+  def create_url(self, data):
+    return self.root_url + '/courses'
 
-    http = build_gtomscs_session(self.environment, self.id_provider, self.jwt_path)
-    r = http.post(self.root_url + '/courses/', data = json.dumps(data))
-    r.raise_for_status()
+  def update_url(self, data):
+    return self.root_url + '/courses/' + data['gtcode']
 
-    return r.json()
+  def load_data(self):
+    data = super(CourseHelper, self).load_data()
+    if self.action == 'create' and 'course' in data:
+      if 'git_url' not in data['course']:
+        data['course']['git_url'] = infer_git_url('origin')
+      data['course']['deploy_key'] = read_deploy_key()      
 
-  def generate(self):
+    return data
+
+  def create(self):
     create_deploy_key()
 
-    return super(CourseHelper, self).generate()
+    return super(CourseHelper, self).create()
 
 
 class NanodegreeHelper(CDHelper):
@@ -129,27 +223,40 @@ class NanodegreeHelper(CDHelper):
     super(NanodegreeHelper, self).__init__(args)
     self.root_url = udacity_root_url(self.environment)
 
+  def find_missing_get_path_params(self, data):
+    return {'ndkey'} - frozenset(_ for _ in data)
+
+  def find_missing_create_path_params(self, data):
+    return {}
+
   def find_missing_params(self, data):
     return {'ndkey', 'name'} - frozenset(_ for _ in data)
 
-  def create_on_webserver(self, data):
-    if 'git_url' not in data:
-      data['git_url'] = infer_git_url('origin')
+  def find_disallowed_params(self, data):
+    return frozenset(_ for _ in data) - {'ndkey', 'name', 'cd_group_id', 'git_url', 'deploy_key'}
 
-    data['deploy_key'] = read_deploy_key()
+  def build_session(self):
+    return build_udacity_session(self.environment, self.id_provider, self.jwt_path)
 
-    data = {'nanodegree': data}
+  def create_url(self, data):
+    return self.root_url + '/nanodegrees'
 
-    http = build_udacity_session(self.environment, self.id_provider, self.jwt_path)
-    r = http.post(self.root_url + '/nanodegrees/', data = json.dumps(data))
-    r.raise_for_status()
+  def update_url(self, data):
+    return self.root_url + '/nanodegrees/' + data['ndkey']
 
-    return r.json()
+  def load_data(self):
+    data = super(NanodegreeHelper, self).load_data()
+    if self.action == 'create'and 'nanodegree' in data:
+      if 'git_url' not in data['nanodegree']:
+        data['nanodegree']['git_url'] = infer_git_url('origin')
+      data['nanodegree']['deploy_key'] = read_deploy_key()      
 
-  def generate(self):
+    return data
+
+  def create(self):
     create_deploy_key()
 
-    return super(NanodegreeHelper, self).generate()
+    return super(NanodegreeHelper, self).create()
 
 class QuizHelper(CDHelper):
 
@@ -157,25 +264,36 @@ class QuizHelper(CDHelper):
     super(QuizHelper, self).__init__(args)
     self.root_url = gtomscs_root_url(self.environment)
 
+  def find_missing_get_path_params(self, data):
+    return {'gtcode', 'quiz_name'} - frozenset(_ for _ in data)
+
+  def find_missing_create_path_params(self, data):
+    return {'gtcode'} - frozenset(_ for _ in data)
+
   def find_missing_params(self, data):
-    return {'gtcode', 'name', 'executor', 'docker_image'} - frozenset(_ for _ in data)
+    return {'name', 'timeout'} - frozenset(_ for _ in data)
 
-  def create_on_webserver(self, data):
-    data = {'quiz': data}
+  def find_disallowed_params(self, data):
+    return frozenset(_ for _ in data) - {'name', 'executor', 'docker_image', 
+                                         'timeout', 'quota_limit', 
+                                         'quota_window', 'active'}
 
-    http = build_gtomscs_session(self.environment, self.id_provider, self.jwt_path)
-    r = http.post("%s/courses/%s/quizzes" % (self.root_url, data['quiz']['gtcode']), data = json.dumps(data))
-    r.raise_for_status()
+  def build_session(self):
+    return build_gtomscs_session(self.environment, self.id_provider, self.jwt_path)
 
-    return r.json()
+  def create_url(self, data):
+    return self.root_url + '/courses/' + data['gtcode'] + '/quizzes'
 
-  def generate(self):
-    ans = super(QuizHelper, self).generate()
+  def update_url(self, data):
+    return self.root_url + '/courses/' + data['gtcode'] + '/quizzes/' + data['quiz_name']
+
+  def create(self):
+    ans = super(QuizHelper, self).create()
 
     with open(self.data_file, "r") as fd:
       data = json.load(fd)
 
-    create_files(data['name']) 
+    create_files(data['quiz']['name']) 
 
     return ans
 
@@ -185,46 +303,68 @@ class ProjectHelper(CDHelper):
     super(ProjectHelper, self).__init__(args)
     self.root_url = udacity_root_url(self.environment)
 
+  def find_missing_get_path_params(self, data):
+    return {'ndkey', 'project_name'} - frozenset(_ for _ in data)
+
+  def find_missing_create_path_params(self, data):
+    return {'ndkey'} - frozenset(_ for _ in data)
+
   def find_missing_params(self, data):
-    return {'ndkey', 'name', 'timeout', 'executor', 'docker_image'} - frozenset(_ for _ in data)
+    return {'name', 'timeout'} - frozenset(_ for _ in data)
 
-  def create_on_webserver(self, data):
-    data = {'project': data}
+  def find_disallowed_params(self, data):
+    return frozenset(_ for _ in data) - {'name', 'executor', 'docker_image', 
+                                         'timeout', 'quota_limit', 
+                                         'quota_window', 'active'}
 
-    http = build_udacity_session(self.environment, self.id_provider, self.jwt_path)
-    r = http.post("%s/nanodegrees/%s/projects" % (self.root_url, data['project']['ndkey']), data = json.dumps(data))
-    r.raise_for_status()
+  def build_session(self):
+    return build_udacity_session(self.environment, self.id_provider, self.jwt_path)
 
-    return r.json()
+  def create_url(self, data):
+    return self.root_url + '/nanodegrees/' + data['ndkey'] + '/projects'
 
-  def generate(self):
-    ans = super(ProjectHelper, self).generate()
+  def update_url(self, data):
+    return self.root_url + '/nanodegrees/' + data['ndkey'] + '/projects/' + data['project_name']
+
+  def create(self):
+    ans = super(ProjectHelper, self).create()
 
     with open(self.data_file, "r") as fd:
       data = json.load(fd)
 
-    create_files(data['name']) 
+    create_files(data['project']['name']) 
 
     return ans
 
 def main(args):
   if args.object == 'course':
-    return CourseHelper(args).generate()
+    return CourseHelper(args).act()
   elif args.object == 'nanodegree':
-    return NanodegreeHelper(args).generate()
+    return NanodegreeHelper(args).act()
   elif args.object == 'quiz':
-    return QuizHelper(args).generate()
+    return QuizHelper(args).act()
   elif args.object == 'project':
-    return ProjectHelper(args).generate()
+    return ProjectHelper(args).act()
 
 def main_func():
-  parser = argparse.ArgumentParser(description='Generator for clyde.')
-  parser.add_argument('object', choices = ['course', 'nanodegree', 'quiz', 'project'], help="what to create")
-  parser.add_argument('data_file', help="json file containing configuration")
-
+  parser = argparse.ArgumentParser(description='CLI for creating nanodegrees and projects for udacity or courses and quizzes for GTOMSCS.')
   parser.add_argument('--environment', default='production', help="webserver environment")
   parser.add_argument('--id_provider', default='udacity', help="identity provider (gt for OMSCS TAs)")
   parser.add_argument('--jwt_path', default=None, help="path to file containing auth information")
+
+  subparsers = parser.add_subparsers(dest="action", help="Action")
+
+  get_parser = subparsers.add_parser("get")
+  get_parser.add_argument('object', choices = ['course', 'nanodegree', 'quiz', 'project'], help="what type to act upon")
+  create_parser.add_argument('data_file', help="json file containing configuration")
+
+  create_parser = subparsers.add_parser("create")
+  create_parser.add_argument('object', choices = ['course', 'nanodegree', 'quiz', 'project'], help="what type to act upon") 
+  create_parser.add_argument('data_file', help="json file containing configuration")
+
+  update_parser = subparsers.add_parser("update")
+  update_parser.add_argument('object', choices = ['course', 'nanodegree', 'quiz', 'project'], help="what type to act upon") 
+  update_parser.add_argument('data_file', help="json file containing configuration")
 
   args = parser.parse_args()
 
