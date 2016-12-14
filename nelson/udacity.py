@@ -11,7 +11,7 @@ def root_url(environment):
 
   return url[environment]
 
-def build_session(environment = 'development', id_provider = 'developer', jwt_path = None):
+def build_session(environment = 'production', id_provider = 'udacity', jwt_path = None):
     jwt_path = jwt_path or os.path.join(default_app_data_dir(), 'udacity_jwt')
 
     return SessionBuilder(root_url(environment),
@@ -21,8 +21,8 @@ def build_session(environment = 'development', id_provider = 'developer', jwt_pa
 def submit(nanodegree, 
            project, 
            filenames,
-           environment = 'development', 
-           id_provider = 'developer',
+           environment = 'production', 
+           id_provider = 'udacity',
            max_zip_size = 8 << 20,
            jwt_path = None,
            refresh_time = 3):
