@@ -275,7 +275,7 @@ class QuizHelper(CDHelper):
     return {'gtcode'} - frozenset(_ for _ in data)
 
   def find_missing_params(self, data):
-    return {'name', 'timeout'} - frozenset(_ for _ in data)
+    return {'name', 'timeout', 'executor'} - frozenset(_ for _ in data)
 
   def find_disallowed_params(self, data):
     return frozenset(_ for _ in data) - {'name', 'executor', 'docker_image', 
@@ -320,11 +320,11 @@ class ProjectHelper(CDHelper):
     return {'ndkey'} - frozenset(_ for _ in data)
 
   def find_missing_params(self, data):
-    return {'name', 'timeout'} - frozenset(_ for _ in data)
+    return {'name', 'udacity_key', 'timeout', 'executor'} - frozenset(_ for _ in data)
 
   def find_disallowed_params(self, data):
-    return frozenset(_ for _ in data) - {'name', 'executor', 'docker_image', 
-                                         'timeout', 'quota_limit', 
+    return frozenset(_ for _ in data) - {'name', 'udacity_key', 'executor', 
+                                         'docker_image', 'timeout', 'quota_limit', 
                                          'quota_window', 'active'}
 
   def build_session(self):

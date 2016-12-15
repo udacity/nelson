@@ -194,6 +194,7 @@ class TestProjectHelper(TestDeveloper):
 
     project = {      
       'name': 'helloworld',
+      'udacity_key': '123456789',
       'executor': 'docker',
       'docker_image': 'gtomscs/default',
       'timeout': 30

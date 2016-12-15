@@ -38,9 +38,11 @@ nelson nanodegree data.json
 where data.json contains something like
 <pre><code>
 {
-    "ndkey": "nd123",
-    "name": "Test Nanodegree",
-    "git_url": "git@github.com:udacity/nd123-autograder.git"
+    "nanodegree": {
+        "ndkey": "nd123",
+        "name": "Test Nanodegree",
+        "git_url": "git@github.com:udacity/nd123-autograder.git"
+    }
 }
 </code></pre>
 The git_url parameter should point to the repository of autograding code to be used for course or nanodegree.  For the required organization of this repo, see below.
@@ -48,9 +50,11 @@ The git_url parameter should point to the repository of autograding code to be u
 The analogous data file for a GTOMSCS course would be
 <pre><code>
 {
-    "gtcode": "csXXXX",
-    "name": "Test Course",
-    "git_url": "git@github.com:udacity/csXXXX-autograder.git"
+    "course": {
+        "gtcode": "csXXXX",
+        "name": "Test Course",
+        "git_url": "git@github.com:udacity/csXXXX-autograder.git"
+    }
 }
 </code></pre>
 
@@ -63,19 +67,22 @@ This will both register the project with the webserver and the necessary generat
 <pre><code>
 {
     "ndkey": "csXXXX",
-    "name": "helloworld",
-    "executor": "docker",
-    "docker_image": "gtomscs/default",
-    "timeout": 30,
-    "quota_window": null, 
-    "quota_limit": null,
-    "active" : true
+    "project": {
+        "name": "helloworld",
+        "udacity_key": "123456789",
+        "executor": "docker",
+        "docker_image": "gtomscs/default",
+        "timeout": 30,
+        "quota_window": null, 
+        "quota_limit": null,
+        "active" : true
+    }
 }
 </code></pre>
 with `ndkey` replaced by `gtcode` for OMSCS.
 
 ##Essential Parameters
-The parameters `ndkey`, `name` and `executor` are always required when creating a project or quiz.  For most, it is possible to run the test code inside of a docker container.  In this case, the `executor` parameter should be "docker" and you must use the `docker_image` parameter, e.g. `gtomscs/default`.  All docker images can be see at [gtomscs docker organization](https://hub.docker.com/r/gtomscs/).
+The parameters `ndkey`, `name`, `timeout`, and `executor` are always required when creating a project or quiz.  For most, it is possible to run the test code inside of a docker container.  In this case, the `executor` parameter should be "docker" and you must use the `docker_image` parameter, e.g. `gtomscs/default`.  All docker images can be see at [gtomscs docker organization](https://hub.docker.com/r/gtomscs/).
 
 ## Additional Project/Quiz Parameters
 Some additional parameters are:
