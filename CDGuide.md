@@ -5,7 +5,7 @@ Nelson is a python library for interacting with these webservers.  It allows cou
 
 
 # Student Experience
-Ideally, the student's experience should be as simple as follows.  First, then should install nelson with
+Ideally, the student's experience should be as simple as follows.  First, they should install nelson with
 <pre><code>pip install nelson </code></pre>
 Then they should checkout out the git repository with the student-facing code for the project.  This should contain a script *submit.py*, which they can then use to submit their code with
 <pre><code>python submit.py OPTIONS </code></pre>
@@ -194,7 +194,7 @@ Although the test code runs in a docker container, docker is usually not friendl
 
 Although it is not necessary, it is recommended that you develop your tests on the Vagrant box that is analogous to the autograding machine.  For now, this means running something like 
 <pre><code>
-vagrant init scbrubaker02/compphoto
+vagrant init udacity/compphoto
 vagrant up --provider virtualbox
 </code></pre>
 

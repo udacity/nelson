@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='nelson',
-    version='0.1.0',
+    version='0.2.1',
     author='S. Charles Brubaker',
     author_email='cb@udacity.com',
     packages=['nelson'],
@@ -11,7 +11,7 @@ setup(
             'nelson = nelson.developer:main_func'
         ],
     },
-    url='http://testpypi.python.org/pypi/nelson/',
+    url='http://github.com/udacity/nelson',
     license='MIT',
     description='Handling submission of code to Udacity for automatic feedback',
     keywords = 'Udacity Georgia Tech OMS',
