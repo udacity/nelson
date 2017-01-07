@@ -1,5 +1,5 @@
 # Summary
-The for autograding of large projects that requires extensive testing udacity uses the clyde sandboxed remote execution environment.  To submit jobs and allow TAs to pull submissions GTOMSCS uses the [bonnie](https://github.com/udacity/bonnie) webserver.  Analogously, Udacity Nanodegrees use [dillinger](https://github.com/udacity/dillinger).
+For autograding of large projects that requires extensive testing, udacity uses the clyde sandboxed remote execution environment.  To submit jobs and allow TAs to pull submissions, GTOMSCS uses the [bonnie](https://github.com/udacity/bonnie) webserver.  Analogously, Udacity Nanodegrees use [dillinger](https://github.com/udacity/dillinger).
 
 Nelson is a python library for interacting with these webservers.  It allows course developers to write simple python scripts, which students can then use to submit their code to the appropriate webserver.  
 
