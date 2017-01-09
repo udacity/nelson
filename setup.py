@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='nelson',
-    version='0.2.1',
+    version='0.3.0',
     author='S. Charles Brubaker',
     author_email='cb@udacity.com',
     packages=['nelson'],

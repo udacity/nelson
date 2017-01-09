@@ -1,2 +1,2 @@
-v0.2.2, 2017-09-01  -- Attempt at python3 compatibility
+v0.3.0, 2017-09-01  -- Attempt at python3 compatibility
 v0.2.1, 2016-12-26  -- Initial release.
