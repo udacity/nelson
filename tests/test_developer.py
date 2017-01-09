@@ -53,15 +53,13 @@ class TestHelperMethods(TestDeveloper):
 
     with self.assertRaises(RuntimeError) as cm:
       nelson.developer.infer_git_url('fake')
-    the_exception = cm.exception
-    self.assertEqual(the_exception.message, expected_error_message)
+    self.assertEqual(str(cm.exception), expected_error_message)
 
 
     mock_sp.check_output.return_value = "fatal: Not a git repository (or any of the parent directories): .git"
     with self.assertRaises(RuntimeError) as cm:
       nelson.developer.infer_git_url('fake')
-    the_exception = cm.exception
-    self.assertEqual(the_exception.message, expected_error_message)
+    self.assertEqual(str(cm.exception), expected_error_message)
 
 class TestCourseHelper(TestDeveloper):
 

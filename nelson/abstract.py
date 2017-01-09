@@ -1,8 +1,9 @@
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function, unicode_literals
 from future import standard_library
 standard_library.install_aliases()
 from builtins import input
 from builtins import object
+
 import os
 import sys
 import zipfile
@@ -35,7 +36,7 @@ def submit(submission, refresh_time = 3):
     spin_freq = 8.
     while not submission.poll():
       for _ in range(int(refresh_time * spin_freq)):
-        sys.stdout.write("\rWaiting for results... {}".format(wheel.next()))
+        sys.stdout.write("\rWaiting for results... {}".format(next(wheel)))
         sys.stdout.flush()
         time.sleep(1. / spin_freq)
     sys.stdout.write("\rWaiting for results...Done!\n\n")

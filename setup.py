@@ -11,6 +11,7 @@ setup(
             'nelson = nelson.developer:main_func'
         ],
     },
+    include_package_data=True,
     url='http://github.com/udacity/nelson',
     license='MIT',
     description='Handling submission of code to Udacity for automatic feedback',
@@ -19,5 +20,6 @@ setup(
     install_requires=[
         "requests >= 2.2.1",
         "requests-toolbelt >= 0.7.0",
+        "future"
     ],
 )

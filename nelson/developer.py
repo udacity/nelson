@@ -1,3 +1,9 @@
+from __future__ import absolute_import, division, print_function, unicode_literals
+from future import standard_library
+standard_library.install_aliases()
+from builtins import input
+from builtins import object
+
 import os
 import sys
 import shutil
@@ -30,10 +36,10 @@ def create_deploy_key():
     sp.check_call(["ssh-keygen", "-f", "deploy_key/deploy_id_rsa", "-t", "rsa", "-q", "-N", ""])
     return
 
-  print "Deploy key already exists"
+  print("Deploy key already exists")
 
 def read_deploy_key():
-  with open('deploy_key/deploy_id_rsa', 'rb') as fd:
+  with open('deploy_key/deploy_id_rsa', 'r') as fd:
     ans = fd.read()
   return ans
 
@@ -70,7 +76,7 @@ def create_files(name):
     if exception.errno != errno.EEXIST:
       raise
     else:
-      print exception.message
+      print(exception.message)
   else:
     shutil.move(os.path.join(dst, 'workspace', '._gitignore'), os.path.join(dst, 'workspace', '.gitignore'))
 

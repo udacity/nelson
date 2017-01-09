@@ -23,7 +23,7 @@ class TestGTOMSCS(unittest.TestCase):
 
   def create_randomfiles(self, filenames, nbytes):
     for f in filenames:
-      with open(f,"w") as fd:
+      with open(f,"wb") as fd:
         fd.write(os.urandom(nbytes))
 
   def test_uploads_correctly(self):
@@ -60,8 +60,7 @@ class TestGTOMSCS(unittest.TestCase):
                       max_zip_size = max_zip_size,
                       environment = 'production').submit()
 
-    e = cm.exception
-    self.assertEqual(e.message, "Your zipfile exceeded the limit of %d bytes" % max_zip_size)
+    self.assertEqual(str(cm.exception), "Your zipfile exceeded the limit of %d bytes" % max_zip_size)
 
     for f in filenames:
       os.unlink(f)
@@ -77,8 +76,7 @@ class TestGTOMSCS(unittest.TestCase):
       s = Submission('csXXXX', 'letsmakeadeal', requests.Session(), filenames, 
                       max_zip_size = 8 << 20,
                       environment = 'production').submit()
-    e = cm.exception
-    self.assertEqual(e.message, "Submitted files must in subdirectories of ./.")
+    self.assertEqual(str(cm.exception), "Submitted files must in subdirectories of ./.")
 
     for f in filenames:
       os.unlink(f)
@@ -95,8 +93,7 @@ class TestGTOMSCS(unittest.TestCase):
       s = Submission('csXXXX', 'letsmakeadeal', requests.Session(), filenames, 
                       max_zip_size = 8 << 20,
                       environment = 'production').submit()
-    e = cm.exception
-    self.assertEqual(e.message, "Submitted files must in subdirectories of ./.")
+    self.assertEqual(str(cm.exception), "Submitted files must in subdirectories of ./.")
 
     for f in filenames:
       os.unlink(f)
@@ -121,8 +118,7 @@ class TestGTOMSCS(unittest.TestCase):
         s = Submission('csXXXX', 'letsmakeadeal', requests.Session(), filenames, 
                       max_zip_size = 8 << 20,
                       environment = 'production').submit()
-    e = cm.exception
-    self.assertEqual(e.message, "You don't have access to this quiz.")
+    self.assertEqual(str(cm.exception), "You don't have access to this quiz.")
 
     for f in filenames:
       os.unlink(f)
@@ -147,8 +143,7 @@ class TestGTOMSCS(unittest.TestCase):
         s = Submission('csXXXX', 'letsmakeadeal', requests.Session(), filenames, 
                       max_zip_size = 8 << 20,
                       environment = 'production').submit()
-    e = cm.exception
-    self.assertEqual(e.message, "quota exceeded")
+    self.assertEqual(str(cm.exception), "quota exceeded")
 
     for f in filenames:
       os.unlink(f)
