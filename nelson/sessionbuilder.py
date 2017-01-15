@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from future import standard_library
+from future.utils import bytes_to_native_str
 standard_library.install_aliases()
 from builtins import input
 from builtins import object
@@ -107,15 +108,17 @@ class SessionBuilder():
       session = requests.Session()
       session.headers.update({'content-type':'application/json', 'accept': 'application/json'})
 
+      password_prompt = bytes_to_native_str(b"Password :")
+
       if self.id_provider == 'udacity':
         print("Udacity Login required.")
         email = input('Email :')
-        password = getpass.getpass('Password :')
+        password = getpass.getpass(password_prompt)
         udacity_login(session, self.root_url, email, password)
       elif self.id_provider == 'gt':
         print("GT Login required.")
         username = input('Username :')
-        password = getpass.getpass('Password :')
+        password = getpass.getpass(password_prompt)
         gt_login(session, self.root_url, username, password)
       elif self.id_provider == 'developer':
         print("Developer Login required.")
