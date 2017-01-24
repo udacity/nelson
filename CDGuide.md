@@ -62,7 +62,7 @@ See `nelson --help` for details on controlling environment and login.
 
 #Project/Quiz Generation
 To add a new project to your nanodegree (or quiz to your course), run
-<pre><code>nelson project data.json OPTIONS </code></pre>
+<pre><code>nelson create project data.json OPTIONS </code></pre>
 This will both register the project with the webserver and the necessary generate directories and files in the current directory.  A typical data.json file would look like
 <pre><code>
 {
@@ -79,7 +79,22 @@ This will both register the project with the webserver and the necessary generat
     }
 }
 </code></pre>
-with `ndkey` replaced by `gtcode` for OMSCS.
+For OMSCS, run
+<pre><code>nelson --id_provider gt create quiz data.json OPTIONS </code></pre>, where data.json is like
+<pre><code>
+{
+    "gtcode": "csXXXX",
+    "quiz": {
+        "name": "helloworld",
+        "executor": "docker",
+        "docker_image": "gtomscs/default",
+        "timeout": 30,
+        "quota_window": null, 
+        "quota_limit": null,
+        "active" : true
+    }
+}
+</code></pre>
 
 ##Essential Parameters
 The parameters `ndkey`, `name`, `timeout`, and `executor` are always required when creating a project or quiz.  For most, it is possible to run the test code inside of a docker container.  In this case, the `executor` parameter should be "docker" and you must use the `docker_image` parameter, e.g. `gtomscs/default`.  All docker images can be see at [gtomscs docker organization](https://hub.docker.com/r/gtomscs/).
