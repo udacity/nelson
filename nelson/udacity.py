@@ -11,8 +11,8 @@ from .sessionbuilder import SessionBuilder, default_app_data_dir
 
 def root_url(environment):
   url = {'development': 'http://local-dev.udacity.com:3000',
-         'staging': 'https://autograder-staging.udacity.com',
-         'production': 'https://autograder.udacity.com'}
+         'staging': 'https://project-assistant-staging.udacity.com',
+         'production': 'https://project-assistant.udacity.com'}
 
   return url[environment]
 
