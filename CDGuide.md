@@ -100,7 +100,7 @@ For illustrative purposes we will assume that the project/quiz name "lab01." was
 In brief, the **app/** directory is where you should place the files to be used as part of the autograding process.  The **deploy_keys/** directory contains the public/private key pair that will be used to deploy your code (Because it will be read-only, it's okay to keep it in the repository.)  Feel free to add other directories such as test/ that might aid in development.
 
 # How it works
-Only the **app** directory will be deployed to the autograding machines.  It should contain the all the code  that you use for grading.  Symlinks internal to the **app** directory are okay, ones external to **app** are not.  Thus, **app/lab01/util.py** can link to **app/shared/util.py**, but it should not link to **shared/util.py**.
+Only the **app** directory on your autograding git repo will be deployed to the autograding machines.  It should contain the all the code  that you use for grading.  Symlinks internal to the **app** directory are okay, ones external to **app** are not.  Thus, **app/lab01/util.py** can link to **app/shared/util.py**, but it should not link to **shared/util.py**.
 
 During actual evaluation of the student's code, the contents of the **app/lab01/** directory is placed in the student's home directory and the students code is place inside of the **workspace** folder.  Thus, if your **app** directory contains the files
 
