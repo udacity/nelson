@@ -3,6 +3,7 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import input
 from builtins import object
+import sys
 import os
 from .abstract import Submission as AbstractSubmission
 from .abstract import submit as abstractsubmit
@@ -29,6 +30,7 @@ def submit(nanodegree,
            environment = 'production', 
            id_provider = 'udacity',
            max_zip_size = 8 << 20,
+           zipfile_root = os.path.dirname(sys.argv[0]),
            jwt_path = None,
            refresh_time = 3):
 
@@ -39,6 +41,7 @@ def submit(nanodegree,
                             session,
                             filenames,
                             max_zip_size = max_zip_size,
+                            zipfile_root = zipfile_root,
                             upload_progress_callback = progressbar_callback,
                             environment = environment)
 
