@@ -79,18 +79,20 @@ class Submission(object):
                session,
                filenames,
                max_zip_size = 8 << 20,
+               zipfile_root = os.path.dirname(sys.argv[0]),
                upload_progress_callback = None):
 
     self.s = session
     self.filenames = copy.deepcopy(filenames)
     self.max_zip_size = max_zip_size
     self.upload_progress_callback = upload_progress_callback or default_upload_progress_callback
+    self.zipfile_root = zipfile_root
 
   def submit(self):
 
     self.submit_url = self._get_submit_url()
 
-    mkzip(os.path.dirname(sys.argv[0]), SUBMISSION_FILENAME, self.filenames, self.max_zip_size)
+    mkzip(self.zipfile_root, SUBMISSION_FILENAME, self.filenames, self.max_zip_size)
 
     fd = open(SUBMISSION_FILENAME, "rb")
 
