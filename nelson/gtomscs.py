@@ -57,6 +57,7 @@ class Submission(AbstractSubmission):
                session,
                filenames,
                max_zip_size = 8 << 20,
+               zipfile_root = os.path.dirname(sys.argv[0]),
                upload_progress_callback = None,
                environment = 'production'):
 
@@ -67,6 +68,7 @@ class Submission(AbstractSubmission):
     super(Submission, self).__init__(session,
                                      filenames,
                                      max_zip_size = max_zip_size,
+                                     zipfile_root = zipfile_root,
                                      upload_progress_callback = upload_progress_callback)
 
   def project_name(self):
