@@ -52,7 +52,7 @@ def submit(submission, refresh_time = 3):
       with open(filename, "w") as fd:
           json.dump(submission.feedback(), fd, indent=4, separators=(',', ': '))
 
-      print("\n(Details available in %s)\n" % filename)
+      print("\n(Details available in %s)\n\a" % filename)
 
     elif submission.error_report():
         print(json.dumps(submission.error_report(), indent=4))
